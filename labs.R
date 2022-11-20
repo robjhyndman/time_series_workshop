@@ -52,29 +52,30 @@ snowy |>
 library(broom)
 
 ## Compute features
-PBS_feat <- PBS |>
-  features(Cost, feature_set(pkgs = "feasts")) |>
+tourism_features <- tourism |>
+  features(Trips, feature_set(pkgs = "feasts")) |>
   na.omit()
 
 ## Compute principal components
-PBS_prcomp <- PBS_feat |>
-  select(-Concession, -Type, -ATC1, -ATC2) |>
+tourism_prcomp <- tourism_features |>
+  select(-State, -Region, -Purpose) |>
   prcomp(scale = TRUE) |>
-  augment(PBS_feat)
+  augment(tourism_features)
 
 ## Plot the first two components
-PBS_prcomp |>
-  ggplot(aes(x = .fittedPC1, y = .fittedPC2)) +
+tourism_prcomp |>
+  ggplot(aes(x = .fittedPC1, y = .fittedPC2, col=Purpose)) +
   geom_point()
 
 ## Pull out most unusual series from first principal component
-outliers <- PBS_prcomp |>
-  filter(.fittedPC1 > 7)
+outliers <- tourism_prcomp |>
+  filter(.fittedPC1 > 10) |>
+  arrange(desc(.fittedPC2))
 outliers
 
 ## Visualise the unusual series
-PBS |>
-  semi_join(outliers, by = c("Concession", "Type", "ATC1", "ATC2")) |>
-  autoplot(Cost) +
-  facet_grid(vars(Concession, Type, ATC1, ATC2)) +
+tourism |>
+  semi_join(outliers, by = c("State", "Region", "Purpose")) |>
+  autoplot(Trips) +
+  facet_grid(vars(State, Region, Purpose)) +
   labs(title = "Outlying time series in PC space")

@@ -39,5 +39,8 @@ snowy <- tourism |> filter(Region == "Snowy Mountains")
 
 ### Lab Session 4
 
-* Use a feature-based approach to look for outlying series in `PBS`.
-* What is unusual about the series you identify as "outliers".
+
+* Find the most seasonal time series in the tourism data.
+* Which state has the strongest trends?
+* Use a feature-based approach to look for outlying series in `tourism`.
+* What is unusual about the series you identify as outliers?

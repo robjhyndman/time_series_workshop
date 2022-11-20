@@ -37,26 +37,18 @@ $$\max\left(0, 1-\frac{\text{Var}(R_t)}{\text{Var}(T_t+R_t)}\right)$$
 \fontsize{9}{10}\sf
 
 ```{r features}
-tourism |> features(Trips, feat_stl)
+PBS |> 
+  features(Scripts, feat_stl) 
 ```
 
 ## Feature extraction and statistics
 \fontsize{8}{9}\sf
 
-```{r features-plot, fig.height=2.7}
-tourism |>
-  features(Trips, feat_stl) |>
-  ggplot(aes(x = trend_strength, y = seasonal_strength_year, col = Purpose)) +
-  geom_point() + facet_wrap(vars(State))
+```{r features-plot, fig.height=3.8, fig.width=10}
+PBS |> features(Scripts, feat_stl) |> 
+  ggplot(aes(x = trend_strength, y = seasonal_strength_year, col=ATC1)) +
+  geom_point() + facet_grid(Concession ~ Type)
 ```
-
-\only<2->{\begin{textblock}{4.7}(9.8,7)
-\begin{alertblock}{}\fontsize{10}{10}\sf
-\begin{itemize}\tightlist
-\item Holidays more seasonal than other travel.
-\item WA has strongest trends.
-\end{itemize}
-\end{alertblock}\end{textblock}}
 
 ## Feature extraction and statistics
 \fontsize{9}{9}\sf
@@ -64,23 +56,45 @@ tourism |>
 Find the most seasonal time series:
 
 ```{r extreme}
-most_seasonal <- tourism |>
-  features(Trips, feat_stl) |>
-  filter(seasonal_strength_year == max(seasonal_strength_year))
+most_seasonal <- PBS |>
+  features(Scripts, feat_stl) |>
+  arrange(desc(seasonal_strength_year)) |> 
+  head(1)
 ```
 
 \pause\vspace*{-0.3cm}
 
-```{r extreme2, fig.height=1.8}
-tourism |>
-  right_join(most_seasonal, by = c("State", "Region", "Purpose")) |>
-  ggplot(aes(x = Quarter, y = Trips)) +
-  geom_line() + facet_grid(vars(State, Region, Purpose))
+```{r extreme2, fig.height=1.6}
+PBS |>
+  right_join(most_seasonal, by = c("ATC1", "ATC2", "Concession", "Type")) |>
+  ggplot(aes(x = Month, y = Scripts)) +
+  geom_line() + facet_grid(vars(ATC2, Concession, Type))
+```
+
+## Feature extraction and statistics
+\fontsize{9}{9}\sf
+
+Find the most trended time series:
+
+```{r extreme3}
+most_trended <- PBS |>
+  features(Scripts, feat_stl) |>
+  arrange(desc(trend_strength)) |> 
+  head(1)
+```
+
+\pause\vspace*{-0.3cm}
+
+```{r extreme4, fig.height=1.6}
+PBS |>
+  right_join(most_trended, by = c("ATC1", "ATC2", "Concession", "Type")) |>
+  ggplot(aes(x = Month, y = Scripts)) +
+  geom_line() + facet_grid(vars(ATC2, Concession, Type))
 ```
 
 # Dimension reduction for features
 
-```{r pca, echo=FALSE}
+```{r pca, echo=FALSE, include=FALSE}
 # Save pdf figures
 savepdf <- function(file, width = 16, height = 10) {
   fname <<- paste("figs/", file, ".pdf", sep = "")
@@ -91,13 +105,15 @@ endpdf <- function() {
   crop::dev.off.crop(fname)
 }
 # Compute features
-tourism_features <- tourism |>
-  features(Trips, feature_set(pkgs = "feasts"))
+PBS_features <- PBS |>
+  features(Scripts, feature_set(pkgs = "feasts")) |> 
+  select(-`...26`) |> 
+  na.omit()
 # Compute PCs
-pcs <- tourism_features |>
-  select(-State, -Region, -Purpose) |>
+pcs <- PBS_features |>
+  select(-ATC1, -ATC2, -Type, -Concession) |>
   prcomp(scale = TRUE) |>
-  broom::augment(tourism_features)
+  broom::augment(PBS_features)
 # Save some PC plots
 savepdf("pca1", 18, 10)
 pcs |> ggplot(aes(x = .fittedPC1, y = .fittedPC2)) +
@@ -105,20 +121,25 @@ pcs |> ggplot(aes(x = .fittedPC1, y = .fittedPC2)) +
   theme(aspect.ratio = 1)
 endpdf()
 savepdf("pca2", 18, 10)
-pcs |> ggplot(aes(x = .fittedPC1, y = .fittedPC2, col = State)) +
+pcs |> ggplot(aes(x = .fittedPC1, y = .fittedPC2, col = Concession)) +
   geom_point() +
   theme(aspect.ratio = 1)
 endpdf()
 savepdf("pca3", 18, 10)
-pcs |> ggplot(aes(x = .fittedPC1, y = .fittedPC2, col = Purpose)) +
+pcs |> ggplot(aes(x = .fittedPC1, y = .fittedPC2, col = Type)) +
+  geom_point() +
+  theme(aspect.ratio = 1)
+endpdf()
+savepdf("pca4", 18, 10)
+pcs |> ggplot(aes(x = .fittedPC1, y = .fittedPC2, col = ATC1)) +
   geom_point() +
   theme(aspect.ratio = 1)
 endpdf()
 # Find outliers
 outliers <- pcs |>
-  filter(.fittedPC1 > 12 | (.fittedPC1 > 10 & .fittedPC2 > 0))
-savepdf("pca4", 18, 10)
-pcs |> ggplot(aes(x = .fittedPC1, y = .fittedPC2, col = Purpose)) +
+  filter(.fittedPC2 < -15)
+savepdf("pca5", 18, 10)
+pcs |> ggplot(aes(x = .fittedPC1, y = .fittedPC2, col=Type)) +
   geom_point() +
   theme(aspect.ratio = 1) +
   geom_point(data = outliers, aes(x = .fittedPC1, y = .fittedPC2), col = "black", shape = 1, size = 3)
@@ -128,26 +149,28 @@ endpdf()
 ## Feature extraction and statistics
 \fontsize{9}{9}\sf
 
-```{r tourismfeatures, eval=FALSE}
-tourism_features <- tourism |>
-  features(Trips, feature_set(pkgs = "feasts"))
+```{r PBSfeatures, eval=FALSE}
+PBS_features <- PBS |>
+  features(Scripts, feature_set(pkgs = "feasts")) |> 
+  select(-`...26`) |> 
+  na.omit()
 ```
 
 ```{r echo=FALSE, cache=FALSE}
-tourism_features
+PBS_features
 ```
 
-\begin{textblock}{4.5}(10.6,1.3)
+\begin{textblock}{4}(10.6,1.6)
 \begin{alertblock}{}\fontsize{10}{12}\sf
 All features from the feasts package
 \end{alertblock}
 \end{textblock}
 
 ## Feature extraction and statistics
-\fontsize{9}{9}\sf
+\fontsize{9}{8.5}\sf
 
 ```{r featurelist, cache=FALSE}
-colnames(tourism_features)
+colnames(PBS_features)
 ```
 
 
@@ -155,10 +178,10 @@ colnames(tourism_features)
 \fontsize{9}{9}\sf
 
 ```{r pcatable}
-pcs <- tourism_features |>
-  select(-State, -Region, -Purpose) |>
+pcs <- PBS_features |>
+  select(-ATC1, -ATC2, -Type, -Concession) |>
   prcomp(scale = TRUE) |>
-  broom::augment(tourism_features)
+  broom::augment(PBS_features)
 ```
 
 ```{r echo=FALSE}
@@ -202,7 +225,7 @@ pcs |> ggplot(aes(x=.fittedPC1, y=.fittedPC2, col=State)) +
   geom_point() + theme(aspect.ratio=1)
 ```
 
-\placefig{4}{2.6}{height=6.4cm, width=12cm}{pca2}
+\placefig{4}{2.6}{height=6.4cm, width=12cm}{pca4}
 \vspace*{10cm}
 
 ## Feature extraction and statistics
@@ -219,8 +242,9 @@ pcs |> ggplot(aes(x=.fittedPC1, y=.fittedPC2, col=Purpose)) +
   geom_point() + theme(aspect.ratio=1)
 ```
 
-\only<1>{\placefig{4}{2.6}{height=6.4cm, width=12cm}{pca3}}
-\only<2>{\placefig{4}{2.6}{height=6.4cm, width=12cm}{pca4}}
+\only<1>{\placefig{4}{2.6}{height=6.4cm, width=12cm}{pca2}}
+\only<2>{\placefig{4}{2.6}{height=6.4cm, width=12cm}{pca3}}
+\only<3>{\placefig{4}{2.6}{height=6.4cm, width=12cm}{pca5}}
 \vspace*{10cm}
 
 ## Feature extraction and statistics
@@ -228,9 +252,9 @@ pcs |> ggplot(aes(x=.fittedPC1, y=.fittedPC2, col=Purpose)) +
 
 ```{r outliers2, fig.height=4.5, fig.width=12, out.height="55%"}
 outliers |>
-  left_join(tourism, by = c("State", "Region", "Purpose")) |>
-  mutate(Series = glue("{State}", "{Region}", "{Purpose}", .sep = "\n\n")) |>
-  ggplot(aes(x = Quarter, y = Trips)) +
+  left_join(PBS, by = c("ATC1", "ATC2", "Concession", "Type")) |>
+  mutate(Series = glue("{ATC2}", "{Concession}", "{Type}", .sep = "\n\n")) |>
+  ggplot(aes(x = Month, y = Scripts)) +
   geom_line() + facet_grid(Series ~ .) +
   labs(title = "Outlying time series in PC space")
 ```
@@ -239,6 +263,10 @@ outliers |>
 
 ## Lab Session 4
 
-* Use a feature-based approach to look for outlying series in `PBS`.
+* Find the most seasonal time series in the tourism data.
+
+* Which state has the strongest trends?
+
+* Use a feature-based approach to look for outlying series in `tourism`.
 
 * What is unusual about the series you identify as outliers?
