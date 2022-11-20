@@ -5,9 +5,9 @@ title: Exploratory time series analysis using R
 venue: WOMBAT 2022
 ---
 
-## Dates
+## Date
 
-6 December 2022
+1pm -- 4pm, 6 December 2022
 
 ## Course description
 
@@ -46,21 +46,13 @@ the workshop.
 install.packages(c("tidyverse","fpp3","GGally"))
 ```
 
-## Schedule
-
-  Time            Activity
-  --------------- -----------
-  13:00 - 14:00   Session 1
-  14:00 - 15:00   Session 2
-  15:00 - 16:00   Session 3
-
 ## Slides
 
 -   [Session
-    1](https://github.com/robjhyndman/forecasting_workshop/raw/main/session1.pdf)
+    1](https://github.com/robjhyndman/time_series_workshop/raw/main/session1.pdf)
 -   [Session
-    2](https://github.com/robjhyndman/forecasting_workshop/raw/main/session2.pdf)
+    2](https://github.com/robjhyndman/time_series_workshop/raw/main/session2.pdf)
 -   [Session
-    3](https://github.com/robjhyndman/forecasting_workshop/raw/main/session3.pdf)
+    3](https://github.com/robjhyndman/time_series_workshop/raw/main/session3.pdf)
 
 ## [Labs](https://github.com/robjhyndman/time_series_workshop/blob/main/Labs.md)
