@@ -2,7 +2,6 @@
 author:
 - Rob J Hyndman
 title: Exploratory time series analysis using R
-toc-title: Table of contents
 venue: WOMBAT 2022
 ---
 
@@ -57,11 +56,11 @@ install.packages(c("tidyverse","fpp3","GGally"))
 
 ## Slides
 
-0.  [Session
+-   [Session
     1](https://github.com/robjhyndman/forecasting_workshop/raw/main/session1.pdf)
-1.  [Session
+-   [Session
     2](https://github.com/robjhyndman/forecasting_workshop/raw/main/session2.pdf)
-2.  [Session
+-   [Session
     3](https://github.com/robjhyndman/forecasting_workshop/raw/main/session3.pdf)
 
 ## [Labs](https://github.com/robjhyndman/time_series_workshop/blob/main/Labs.md)

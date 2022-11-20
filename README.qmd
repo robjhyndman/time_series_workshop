@@ -1,7 +1,8 @@
 ---
-title: "Exploratory time series analysis using R"
+title: Exploratory time series analysis using R
+toc-title: ""
 venue: WOMBAT 2022
-author: "Rob J Hyndman"
+author: Rob J Hyndman
 format: markdown
 ---
 
@@ -11,7 +12,7 @@ options(digits = 3, width = 75)
 library(tidyverse)
 ```
 
-## Dates
+## Date
 
 6 December 2022
 
@@ -47,9 +48,9 @@ install.packages(c("tidyverse","fpp3","GGally"))
 
 ## Slides
 
-  0. [Session 1](https://github.com/robjhyndman/forecasting_workshop/raw/main/session1.pdf)
-  2. [Session 2](https://github.com/robjhyndman/forecasting_workshop/raw/main/session2.pdf)
-  3. [Session 3](https://github.com/robjhyndman/forecasting_workshop/raw/main/session3.pdf)
+  * [Session 1](https://github.com/robjhyndman/forecasting_workshop/raw/main/session1.pdf)
+  * [Session 2](https://github.com/robjhyndman/forecasting_workshop/raw/main/session2.pdf)
+  * [Session 3](https://github.com/robjhyndman/forecasting_workshop/raw/main/session3.pdf)
 
 
 ## [Labs](https://github.com/robjhyndman/time_series_workshop/blob/main/Labs.md)
