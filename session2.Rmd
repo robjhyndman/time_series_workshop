@@ -1,0 +1,319 @@
+---
+title: "Exploratory time series analysis using R"
+author: "2. Visualising trend and seasonality"
+toc: true
+classoption: aspectratio=169
+titlecolor: burntorange
+output:
+  binb::monash:
+    latex_engine: xelatex
+    colortheme: monashwhite
+    fig_width: 7.5
+    fig_height: 3
+    includes:
+      in_header: header.tex
+---
+
+```{r setup, include=FALSE}
+source("setup.R")
+library(gganimate)
+```
+
+# Time plots
+
+## Time plots: `autoplot()`
+
+```{r maxtemp, fig.height=2.4}
+maxtemp <- vic_elec |>
+  index_by(Day = date(Time)) |>
+  summarise(Temperature = max(Temperature))
+maxtemp |>
+  autoplot(Temperature) +
+  labs(x = "Week", y = "Max temperature")
+```
+
+## Ansett airlines
+
+\full{ansettlogo}
+
+## Ansett airlines
+
+```{r, echo=TRUE, fig.height=3.1}
+ansett |>
+  autoplot(Passengers)
+```
+
+## Ansett airlines
+
+```{r, echo=TRUE, fig.height=3.1}
+ansett |>
+  filter(Class == "Economy") |>
+  autoplot(Passengers)
+```
+
+## Ansett airlines
+
+```{r, echo=TRUE, fig.height=3.1}
+ansett |>
+  filter(Airports == "MEL-SYD") |>
+  autoplot(Passengers)
+```
+
+## Ansett airlines
+
+```{r, echo=TRUE, fig.height=3.1}
+ansett |>
+  filter(Airports == "MEL-SYD") |>
+  autoplot(Passengers)
+```
+
+\begin{textblock}{2.4}(12.6,7.3)
+\begin{alertblock}{}\fontsize{12}{12}\sf
+Not the real data! Or is it?
+\end{alertblock}
+\end{textblock}
+
+# Seasonal plots
+
+## Seasonal plots: `gg_season()`
+
+  * Data plotted against the individual "seasons" in which the data were observed.
+  * Something like a time plot except that the data from each season are overlapped.
+  * Enables the underlying seasonal pattern to be seen more clearly, and also allows any substantial departures from the seasonal pattern to be easily identified.
+
+## Quarterly Australian Beer Production
+
+```{r, fig.height=2.7}
+beer <- aus_production |>
+  select(Quarter, Beer) |>
+  filter(year(Quarter) >= 1992)
+beer |> autoplot(Beer)
+```
+
+## Quarterly Australian Beer Production
+
+```{r}
+beer |> gg_season(Beer, labels = "right")
+```
+
+## Multiple seasonal periods
+\fontsize{10}{11}\sf
+
+```{r}
+vic_elec
+```
+
+## Multiple seasonal periods
+\fontsize{12}{13}\sf
+
+```{r, dev = "png", dpi = 180}
+vic_elec |> gg_season(Demand)
+```
+
+## Multiple seasonal periods
+\fontsize{12}{13}\sf
+
+```{r, dev = "png", dpi = 180}
+vic_elec |> gg_season(Demand, period = "week")
+```
+
+## Multiple seasonal periods
+\fontsize{12}{13}\sf
+
+```{r, dev = "png", dpi = 180}
+vic_elec |> gg_season(Demand, period = "day")
+```
+
+## Seasonal subseries plots: `gg_subseries()`
+
+  * Data for each season collected together in time plot as separate time series.
+  * Enables the underlying seasonal pattern to be seen clearly, and changes in seasonality over time to be visualized.
+
+## Quarterly Australian Beer Production
+
+```{r}
+beer |> gg_subseries(Beer)
+```
+
+# Lab Session 2
+## Lab Session 2
+
+Look at the quarterly tourism data for the Snowy Mountains
+
+```r
+snowy <- tourism |>
+  filter(Region == "Snowy Mountains")
+```
+
+- Use `autoplot()`, `gg_season()` and `gg_subseries()` to explore the data.
+- What do you learn?
+
+# Time series decompositions
+
+## Time series decomposition
+
+Trend-Cycle
+: aperiodic changes in level over time.
+
+Seasonal
+: (almost) periodic changes in level due to seasonal factors (e.g., the quarter of the year, the month, or day of the week).
+
+\begin{block}{Additive decomposition}\vspace*{-0.3cm}
+\[ y_t = S_t + T_t + R_t \]
+\end{block}
+\begin{tabular}{@{}llp{8cm}@{}}
+where & $y_t=$ & data at period $t$ \\
+      & $T_t=$ & trend-cycle component at period $t$\\
+      & $S_t=$ & seasonal component at period $t$ \\
+      & $R_t=$ & remainder component at period $t$
+\end{tabular}
+
+
+## US Retail Employment
+\fontsize{11}{11}\sf
+
+```{r usretail}
+us_retail_employment <- us_employment |>
+  filter(year(Month) >= 1990, Title == "Retail Trade") |>
+  select(-Series_ID)
+us_retail_employment
+```
+
+\vspace*{10cm}
+
+## US Retail Employment
+
+```{r dable1}
+us_retail_employment |>
+  autoplot(Employed) +
+  labs(y = "Persons (thousands)", title = "Total employment in US retail")
+```
+
+\vspace*{10cm}
+
+## US Retail Employment
+\fontsize{11}{11}\sf
+
+```{r dable2}
+dcmp <- us_retail_employment |>
+  model(stl = STL(Employed))
+dcmp
+```
+
+\pause
+
+*  STL: "Seasonal and Trend decomposition using Loess"
+
+\vspace*{10cm}
+
+## US Retail Employment
+\fontsize{11}{11}\sf
+
+```{r dable3}
+components(dcmp)
+```
+
+\vspace*{10cm}
+
+## US Retail Employment
+
+```{r usretail-stl, fig.width=8, fig.height=5}
+components(dcmp) |> autoplot()
+```
+
+## US Retail Employment
+
+```{r dable4, fig.height=2.7}
+us_retail_employment |>
+  autoplot(Employed, color = "gray") +
+  autolayer(components(dcmp), trend, color = "#D55E00") +
+  labs(y = "Persons (thousands)", title = "Total employment in US retail")
+```
+
+\vspace*{10cm}
+
+
+## US Retail Employment
+
+```{r usretail-sa, fig.height=2.7}
+us_retail_employment |>
+  autoplot(Employed, color = "gray") +
+  autolayer(components(dcmp), season_adjust, color = "#0072B2") +
+  labs(y = "Persons (thousands)", title = "Total employment in US retail")
+```
+
+\only<2>{\begin{textblock}{5.8}(9.8,6.8)
+\begin{block}{Seasonally adjusted data}
+$$y_t - S_t$$
+\end{block}
+\end{textblock}
+}
+
+## STL decomposition
+
+```{r stlwindowanim, echo=FALSE, warning=FALSE, message=FALSE, fig.show='animate', interval=1/10,  fig.height=5.35, fig.width=8, aniopts='controls,buttonsize=0.3cm,width=11.5cm', eval=TRUE}
+s_windows <- seq(5, 55, by = 2)
+stl_defs <- purrr::map(s_windows, function(s_window) {
+  STL(Employed ~ season(window = s_window), robust = TRUE)
+})
+names(stl_defs) <- sprintf("season(window=%02d)", s_windows)
+
+us_retail_employment |>
+  model(!!!stl_defs) |>
+  components() |>
+  as_tibble() |>
+  pivot_longer(Employed:remainder,
+    names_to = "component", names_ptypes = list(component = factor(levels = c("Employed", "trend", "season_year", "remainder"))),
+    values_to = "Employed"
+  ) |>
+  ggplot(aes(x = Month, y = Employed)) +
+  geom_line() +
+  facet_grid(rows = vars(component), scales = "free_y") +
+  labs(
+    title = "STL decomposition of US retail employment",
+    subtitle = "{closest_state}"
+  ) +
+  transition_states(.model)
+```
+
+\vspace*{10cm}
+
+## STL decomposition
+
+```{r echo = TRUE, results = 'hide'}
+us_retail_employment |>
+  model(STL(Employed ~ trend(window = 21) + season(window = 13),
+    robust = TRUE
+  )) |>
+  components()
+```
+
+\fontsize{12}{13}\sf
+
+  *  `trend(window = ?)` controls wiggliness of trend component.
+  *  `season(window = ?)` controls variation on seasonal component.
+  *  `season(window = 'periodic')` is equivalent to an infinite window.
+
+## STL decomposition
+\fontsize{13}{15}\sf
+
+* Algorithm that updates trend and seasonal components iteratively.
+* Starts with $\hat{T}_t=0$
+* Uses a mixture of loess and moving averages to successively refine the trend and seasonal estimates.
+* trend window controls loess bandwidth on deasonalised values.
+* season window controls loess bandwidth on detrended subseries.
+* Robustness weights based on remainder.
+* Default season: `window = 13`
+* Default trend: `window =` \newline\mbox{}\hfill `nextodd(ceiling((1.5*period)/(1-(1.5/s.window)))`
+* `window` values should be odd numbers for symmetry.
+
+# Lab Session 3
+
+## Lab Session 3
+\fontsize{13}{14}\sf
+
+1. Produce an STL decomposition of the Snowy Mountains data.
+
+2. Experiment with different values of the two `window` arguments.
+
+3. Plot the seasonally adjusted series.
