@@ -267,8 +267,8 @@ pcs |> ggplot(aes(x=.fittedPC1, y=.fittedPC2, col=Type)) +
 \fontsize{8}{8}\sf
 
 ```{r outliers2, fig.height=4.5, fig.width=12, out.height="55%"}
-filter(pcs, .fittedPC2 < -15) |> 
-  left_join(PBS, by = c("ATC1", "ATC2", "Concession", "Type")) |>
+outliers <- filter(pcs, .fittedPC2 < -15) 
+semi_join(PBS, outliers, by = c("ATC1", "ATC2", "Concession", "Type")) |>
   mutate(Series = glue("{ATC2}", "{Concession}", "{Type}", .sep = "\n\n")) |>
   ggplot(aes(x = Month, y = Scripts)) +
   geom_line() + facet_grid(Series ~ .) +
