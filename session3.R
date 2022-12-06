@@ -15,7 +15,7 @@ most_seasonal <- PBS |>
   head(1)
 
 PBS |>
-  right_join(most_seasonal, by = c("ATC1", "ATC2", "Concession", "Type")) |>
+  semi_join(most_seasonal, by = c("ATC1", "ATC2", "Concession", "Type")) |>
   ggplot(aes(x = Month, y = Scripts)) +
   geom_line() + facet_grid(vars(ATC2, Concession, Type))
 
@@ -25,7 +25,7 @@ most_trended <- PBS |>
   head(1)
 
 PBS |>
-  right_join(most_trended, by = c("ATC1", "ATC2", "Concession", "Type")) |>
+  semi_join(most_trended, by = c("ATC1", "ATC2", "Concession", "Type")) |>
   ggplot(aes(x = Month, y = Scripts)) +
   geom_line() + facet_grid(vars(ATC2, Concession, Type))
 
