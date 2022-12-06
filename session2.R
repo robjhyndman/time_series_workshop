@@ -31,6 +31,7 @@ beer |> gg_subseries(Beer)
 
 ## Victorian electricity demand
 
+vic_elec |> filter(Date >= "2012-04-01", Date <= "2012-05-31") |> autoplot(Demand)
 vic_elec |> gg_season(Demand)
 vic_elec |> gg_season(Demand, period = "week")
 vic_elec |> gg_season(Demand, period = "day")
