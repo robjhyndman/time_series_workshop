@@ -2,7 +2,9 @@ library(fpp3)
 
 # Lab Session 1
 
-download.file("http://robjhyndman.com/data/tourism.xlsx", tourism_file <- tempfile())
+download.file("http://robjhyndman.com/data/tourism.xlsx",
+              tourism_file <- tempfile()
+)
 my_tourism <- readxl::read_excel(tourism_file) |>
   mutate(Quarter = yearquarter(Quarter)) |>
   as_tsibble(
@@ -20,19 +22,20 @@ state_tourism <- my_tourism |>
   group_by(State) |>
   summarise(Trips = sum(Trips), .groups = "drop")
 
+
 # Lab Session 2
 
 snowy <- tourism |>
-  filter(Region == "Snowy Mountains") |>
-  select(-State, -Region)
+  filter(Region == "Snowy Mountains")
 snowy |> autoplot(Trips)
 snowy |> gg_season(Trips)
 snowy |> gg_subseries(Trips)
 
+
 # Lab Session 3
 
 snowy |>
-  model(STL(Trips ~ season(window = 7) + trend(window = 11))) |>
+  model(STL(Trips ~ season(window = 13) + trend(window = 31))) |>
   components() |>
   autoplot()
 
@@ -41,9 +44,11 @@ snowy |>
 ## A longer window gives a smoother (slow changing) component
 
 snowy |>
-  model(STL(Trips ~ season(window = 7) + trend(window = 11))) |>
+  model(STL(Trips ~ season(window = 13) + trend(window = 31))) |>
   components() |>
-  autoplot(season_adjust)
+  ggplot(aes(x=Quarter, y = season_adjust, group = Purpose, col = Purpose)) +
+  geom_line()
+
 
 # Lab Session 4
 
@@ -51,8 +56,21 @@ library(broom)
 
 ## Compute features
 tourism_features <- tourism |>
-  features(Trips, feature_set(pkgs = "feasts")) |>
-  na.omit()
+  features(Trips, feature_set(pkgs = "feasts"))
+
+# Most seasonal
+most_seasonal <- tourism_features |>
+  filter(seasonal_strength_year == max(seasonal_strength_year))
+
+tourism |>
+  semi_join(most_seasonal, by = c("Region", "State", "Purpose")) |>
+  autoplot(Trips)
+
+# Strongest trends
+tourism_features |>
+  group_by(State) |>
+  summarise(trend_strength = mean(trend_strength), .groups = "drop") |>
+  arrange(desc(trend_strength))
 
 ## Compute principal components
 tourism_prcomp <- tourism_features |>
@@ -67,9 +85,10 @@ tourism_prcomp |>
 
 ## Pull out most unusual series from first principal component
 outliers <- tourism_prcomp |>
-  filter(.fittedPC1 > 10) |>
+  filter(.fittedPC1 > 10)
+outliers |>
+  select(Region, State, Purpose, .fittedPC1, .fittedPC2) |>
   arrange(desc(.fittedPC2))
-outliers
 
 ## Visualise the unusual series
 tourism |>
