@@ -13,14 +13,12 @@ my_tourism <- readxl::read_excel(tourism_file) |>
 my_tourism |>
   as_tibble() |>
   group_by(Region, Purpose) |>
-  summarise(Trips = mean(Trips)) |>
-  ungroup() |>
+  summarise(Trips = mean(Trips), .groups = "drop") |>
   filter(Trips == max(Trips))
 
 state_tourism <- my_tourism |>
   group_by(State) |>
-  summarise(Trips = sum(Trips)) |>
-  ungroup()
+  summarise(Trips = sum(Trips), .groups = "drop")
 
 # Lab Session 2
 
